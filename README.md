@@ -1,1 +1,1 @@
-# horse_club_room
+# reservations_with_room
