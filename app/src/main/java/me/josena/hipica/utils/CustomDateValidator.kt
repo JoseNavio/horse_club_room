@@ -9,17 +9,24 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @SuppressLint("ParcelCreator")
-class CustomDateValidator :  CalendarConstraints.DateValidator {
+class CustomDateValidator(private val currentYear: Int, private val currentMonth: Int) :
+    CalendarConstraints.DateValidator {
 
-    //todo Just for testing
-    val markedDates = arrayOf(
-        Calendar.getInstance().apply { set(2023, Calendar.APRIL, 23) }.timeInMillis,
-        Calendar.getInstance().apply { set(2023, Calendar.APRIL, 25) }.timeInMillis,
-        Calendar.getInstance().apply { set(2023, Calendar.MAY, 2) }.timeInMillis,
-        Calendar.getInstance().apply { set(2023, Calendar.MARCH, 5) }.timeInMillis,
-        Calendar.getInstance().apply { set(2023, Calendar.MARCH, 18) }.timeInMillis,
-        Calendar.getInstance().apply { set(2023, Calendar.APRIL, 27) }.timeInMillis
-    )
+    //Calendar.getInstance().apply { set(2023, Calendar.APRIL, 23) }.timeInMillis,
+
+//    private fun isSameDate(date: Long): Boolean {
+//
+//        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+//        val formattedDate = dateFormat.format(Date(date))
+//
+//        for (validDate: Long in markedDates) {
+//
+//            val formattedValid = dateFormat.format(Date(validDate))
+//            if (formattedDate == formattedValid)
+//                return true
+//        }
+//        return false
+//    }
 
     override fun describeContents(): Int {
         TODO("Not yet implemented")
@@ -30,20 +37,15 @@ class CustomDateValidator :  CalendarConstraints.DateValidator {
     }
 
     override fun isValid(date: Long): Boolean {
-        return isSameDate(date)
-    }
+        val calendar = Calendar.getInstance()
+        val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+        val currentCalendar = Calendar.getInstance()
+        currentCalendar.set(currentYear, currentMonth, currentDay)
 
-    private fun isSameDate(date: Long): Boolean {
+        val selectedCalendar = Calendar.getInstance()
+        selectedCalendar.timeInMillis = date
 
-        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val formattedDate = dateFormat.format(Date(date))
-
-        for (validDate: Long in markedDates) {
-
-            val formattedValid = dateFormat.format(Date(validDate))
-            if (formattedDate == formattedValid)
-                return true
-        }
-        return false
+        return (selectedCalendar.after(currentCalendar) && selectedCalendar.get(Calendar.YEAR) == currentYear) ||
+                selectedCalendar.get(Calendar.YEAR) > currentYear
     }
 }

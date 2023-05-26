@@ -23,9 +23,11 @@ class MainActivity : AppCompatActivity() {
     private fun setButtons(){
         binding.buttonLaunchForm.setOnClickListener{
             attachFormFragment()
+            binding.buttonLaunchForm.isEnabled = false
         }
         binding.buttonLaunchList.setOnClickListener{
             attachListFragment()
+            binding.buttonLaunchForm.isEnabled = true
         }
     }
     private fun attachFormFragment(){
