@@ -2,6 +2,7 @@ package me.josena.hipica
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.commit
 import me.josena.hipica.databinding.ActivityMainBinding
 import me.josena.hipica.fragments.FragmentForm
@@ -16,23 +17,33 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-    }
 
-    fun attachFormFragment(){
+        setButtons()
+    }
+    private fun setButtons(){
+        binding.buttonLaunchForm.setOnClickListener{
+            attachFormFragment()
+        }
+        binding.buttonLaunchList.setOnClickListener{
+            attachListFragment()
+        }
+    }
+    private fun attachFormFragment(){
 
         supportFragmentManager.commit {
             setReorderingAllowed(true)//Let commit operations decide better operation's order
-            addToBackStack(null)
             replace(binding.containerMainActivity.id, FragmentForm.newInstance())
+            addToBackStack(null)
         }
     }
 
-    fun attachListFragment(){
+    private fun attachListFragment(){
 
         supportFragmentManager.commit {
+
             setReorderingAllowed(true)
-            addToBackStack(null)
             replace(binding.containerMainActivity.id, FragmentList.newInstance())
+            addToBackStack(null)
         }
     }
 }
