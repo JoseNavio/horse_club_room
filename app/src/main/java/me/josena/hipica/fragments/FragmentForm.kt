@@ -1,7 +1,13 @@
 package me.josena.hipica.fragments
 
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,7 +44,7 @@ class FragmentForm : Fragment() {
     private fun setButtons() {
 
         //Confirm
-        binding.buttonConfirm.setOnClickListener{
+        binding.buttonConfirm.setOnClickListener {
             confirmBooking()
         }
         //DatePicker
@@ -114,14 +120,68 @@ class FragmentForm : Fragment() {
         val telephone = binding.fieldTelephone.text.toString().trim()
         val date = binding.fieldDate.text.toString().trim()
         val hour = binding.fieldTime.text.toString().trim()
+        val comment = binding.fieldComment.text.toString().trim()
 
         if (rider.isNotEmpty() && horse.isNotEmpty() && telephone.isNotEmpty() && date.isNotEmpty() && hour.isNotEmpty()) {
-
-            val newBooking = Booking(rider, horse, telephone, date, hour)
+            val newBooking = Booking(rider, horse, telephone, date, hour, comment)
+            sendWhatsApp(newBooking.toString())
 
         } else {
             // Display an error message or handle the case when any field is blank
             Toast.makeText(context, "Rellena todos los campos", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    //WhatsApp
+    //It is necessary to add the package query on the manifest in order to use this...
+    private fun isWhatsAppInstalled(): Boolean {
+        val whatsAppPackageName = "com.whatsapp"
+        return try {
+            val packageInfo = context?.packageManager?.getPackageInfoCompat(
+                whatsAppPackageName,
+                PackageManager.GET_ACTIVITIES
+            )
+            packageInfo != null
+        } catch (e: PackageManager.NameNotFoundException) {
+            false
+        }
+    }
+    private fun PackageManager.getPackageInfoCompat(
+        packageName: String,
+        flags: Int
+    ): PackageInfo =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
+        } else {
+            @Suppress("DEPRECATION") getPackageInfo(packageName, flags)
+        }
+    private fun sendWhatsApp(message: String) {
+
+        isWhatsAppInstalled()
+
+        if (isWhatsAppInstalled()) {
+            val number = binding.fieldTelephone?.text.toString()
+            if (message.isNotBlank() && number.isNotBlank()) {
+
+                val whatsIntent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://api.whatsapp.com/send?phone=34$number&text=$message")
+                )
+                startActivity(whatsIntent)
+            } else {
+                Toast.makeText(
+                    context,
+                    "Los campos no pueden estar vacios.",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+            }
+        } else {
+            Toast.makeText(
+                context,
+                "No existe la aplicación de WhatsApp en el dispositivo.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
