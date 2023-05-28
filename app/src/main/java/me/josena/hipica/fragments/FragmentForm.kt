@@ -7,30 +7,49 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TimePicker
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.MaterialDatePicker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.josena.hipica.R
-import me.josena.hipica.data.Booking
+import me.josena.hipica.data.*
 import me.josena.hipica.databinding.FragmentFormLayoutBinding
 import me.josena.hipica.utils.CustomDateValidator
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FragmentForm : Fragment() {
+class FragmentForm(private val app: BookingApp) : Fragment() {
 
     private lateinit var binding: FragmentFormLayoutBinding
+    private lateinit var bookingDB: SQLiteBookingDB
+    private lateinit var bookingDAO: BookingDAO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = FragmentFormLayoutBinding.inflate(layoutInflater)
+
+        //todo Test mock
+        binding.fieldRider.setOnLongClickListener{
+            binding.fieldRider.setText("Pablo Motos")
+            binding.fieldHorse.setText("Macarena")
+            binding.fieldTelephone.setText("666666666")
+            binding.fieldDate.setText("12/07/2023")
+            binding.fieldTime.setText("18:00")
+            binding.fieldComment.setText("Si")
+            true
+        }
+
+        //DB
+        bookingDB = app.room.build()
+        bookingDAO = bookingDB?.bookingDAO()!!
         setButtons()
     }
 
@@ -114,7 +133,6 @@ class FragmentForm : Fragment() {
     }
 
     private fun confirmBooking() {
-
         val rider = binding.fieldRider.text.toString().trim()
         val horse = binding.fieldHorse.text.toString().trim()
         val telephone = binding.fieldTelephone.text.toString().trim()
@@ -124,7 +142,14 @@ class FragmentForm : Fragment() {
 
         if (rider.isNotEmpty() && horse.isNotEmpty() && telephone.isNotEmpty() && date.isNotEmpty() && hour.isNotEmpty()) {
             val newBooking = Booking(rider, horse, telephone, date, hour, comment)
+            //Insert using Room
+            lifecycleScope.launch(Dispatchers.IO) {
+                bookingDAO.insertBooking(newBooking)
+                BookingProvider.bookingModel?.addBooking(newBooking)
+            }
+            //Notify
             sendWhatsApp(newBooking.toString())
+            resetFields()
 
         } else {
             // Display an error message or handle the case when any field is blank
@@ -146,6 +171,7 @@ class FragmentForm : Fragment() {
             false
         }
     }
+
     private fun PackageManager.getPackageInfoCompat(
         packageName: String,
         flags: Int
@@ -155,6 +181,7 @@ class FragmentForm : Fragment() {
         } else {
             @Suppress("DEPRECATION") getPackageInfo(packageName, flags)
         }
+
     private fun sendWhatsApp(message: String) {
 
         isWhatsAppInstalled()
@@ -179,13 +206,21 @@ class FragmentForm : Fragment() {
         } else {
             Toast.makeText(
                 context,
-                "No existe la aplicación de WhatsApp en el dispositivo.",
+                "No existe la aplicación de WhatsApp en el dispositivo para mandar la notificación.",
                 Toast.LENGTH_SHORT
             ).show()
         }
     }
 
+    private fun resetFields(){
+        binding.fieldRider.setText("")
+        binding.fieldHorse.setText("")
+        binding.fieldTelephone.setText("")
+        binding.fieldDate.setText("")
+        binding.fieldTime.setText("")
+        binding.fieldComment.setText("")
+    }
     companion object {
-        fun newInstance() = FragmentForm()
+        fun newInstance(app: BookingApp) = FragmentForm(app)
     }
 }

@@ -36,6 +36,18 @@
 
     </style>
 
+    <!-- SquareFloatingActionButton -->
+    <style name="SquareFloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/purple_500</item>
+        <item name="tint">@color/white</item>
+        <item name="shapeAppearanceOverlay">@style/SquareShapeOverlay</item>
+    </style>
+
+    <style name="SquareShapeOverlay" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">5dp</item>
+    </style>
+
     <!--Material calendar-->
     <style name="MaterialCalendarThemeBackground" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
         <item name="materialCalendarStyle">@style/CustomMaterialCalendar</item>
